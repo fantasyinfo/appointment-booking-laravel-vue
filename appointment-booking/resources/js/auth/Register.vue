@@ -27,6 +27,7 @@
                 <div>
 
                     <div class="mt-2">
+                        <label for="password" class="block text-sm/6 font-medium text-gray-900">Password</label>
                         <input type="password" v-model="password" name="password" id="password"
                             autocomplete="current-password" required
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
@@ -41,8 +42,9 @@
             </form>
 
             <p class="mt-10 text-center text-sm/6 text-gray-500">
-                already a member?
-
+                already a member? <router-link to="/login" class="text-blue-600 hover:underline">
+                    Login
+                </router-link>
             </p>
         </div>
     </div>
@@ -51,25 +53,49 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth.js'
+import { useToast } from "vue-toastification"
 
 const name = ref('');
 const email = ref('');
 const password = ref('');
 const authStore = useAuthStore();
+const toast = useToast();
 
 const register = async () => {
     try {
-        const response = await authStore.register({
+        if (!name.value || !email.value || !password.value) {
+            return toast.error("All fields are required");
+        }
+
+        const registerResponse = await authStore.register({
             name: name.value,
             email: email.value,
             password: password.value,
         });
 
-        console.log("Registration successful:", response);
-        alert("Registration successful! Please login.");
+        if (registerResponse?.data?.error) {
+            return toast.error(registerResponse?.data?.message)
+        }
+        toast.success("Registration successful, please login now.");
     } catch (error) {
-        console.error("Registration failed:", error);
-        alert(error);
+
+        // validation errors
+        if (error.errors) {
+            const validationErrors = error.errors;
+
+            if (validationErrors.email) toast.error(validationErrors.email[0]);
+            if (validationErrors.password) toast.error(validationErrors.password[0]);
+            return;
+        }
+
+        if (!error.response) {
+            toast.error("Network error. Server not responding.");
+            return;
+        }
+
+        toast.error(error.response.data.message || "Something went wrong.");
     }
 };
+
+
 </script>

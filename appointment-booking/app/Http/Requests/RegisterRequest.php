@@ -23,7 +23,7 @@ class RegisterRequest extends FormRequest
      */
     public function rules(): array
     {
-     
+
         return [
             'name' => 'required|string|max:100',
             'email' => 'required|email|unique:users',
@@ -33,6 +33,10 @@ class RegisterRequest extends FormRequest
 
     protected function failedValidation(Validator $validator)
     {
-        throw new ValidationException($validator, response()->json($validator->errors(), 422));
+        throw new ValidationException($validator, response()->json([
+            'message' => 'Validation failed',
+            'errors' => $validator->errors()
+        ], 422));
     }
+
 }
