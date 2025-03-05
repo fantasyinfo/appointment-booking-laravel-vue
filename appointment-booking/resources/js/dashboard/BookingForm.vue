@@ -45,9 +45,17 @@
 </template>
 
 <script setup>
-import { ref,defineEmits } from 'vue'
+import { ref, defineEmits } from 'vue'
 import { newBooking } from '../utils/Booking.Api.js'
 import { useToast } from "vue-toastification"
+
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 
 const title = ref('')
@@ -78,11 +86,24 @@ const submitBooking = async () => {
             return toast.error("One or more guest emails are invalid.");
         }
 
+        const localTimezone = dayjs.tz.guess();
+        const formattedDateTime = dayjs(date_time.value)
+            .tz(localTimezone)
+            .format("YYYY-MM-DD HH:mm:ss");
+
+        let formattedReminderDateTime;
+        if (reminder_time.value) {
+            formattedReminderDateTime = dayjs(reminder_time.value)
+                .tz(localTimezone)
+                .format("YYYY-MM-DD HH:mm:ss");
+        }
+
+
         const bookingResponse = await newBooking({
             title: title.value,
             description: description.value,
-            date_time: date_time.value,
-            reminder_time: reminder_time.value || null,
+            date_time: formattedDateTime,
+            reminder_time: formattedReminderDateTime || null,
             guests: guestList,
         });
 
@@ -118,9 +139,9 @@ const submitBooking = async () => {
             toast.error(error?.message)
             return;
         }
-        toast.error(error.response.data.message || "Something went wrong.");
+        toast.error(error?.response?.data?.message || "Something went wrong.");
 
-        if (!error.response) {
+        if (!error?.response) {
             toast.error("Network error. Server not responding.");
             return;
         }

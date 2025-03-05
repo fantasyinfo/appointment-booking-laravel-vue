@@ -53,7 +53,7 @@ class AppointmentBookingController extends Controller
             "message" => "All Appointment Bookings Lists.",
             "data" => $response
 
-        ], 201);
+        ], 200);
     }
 
     public function deleteAppointment($id)

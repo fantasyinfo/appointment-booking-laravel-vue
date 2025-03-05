@@ -18,6 +18,7 @@ class Appointment extends Model
         'date_time',
         'timezone',
         'reminder_time',
+        'reminder_sent',
     ];
 
     protected function casts()

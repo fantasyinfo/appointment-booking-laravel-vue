@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->dateTime('date_time');
             $table->dateTime('reminder_time')->nullable();
+            $table->boolean('reminder_sent')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });

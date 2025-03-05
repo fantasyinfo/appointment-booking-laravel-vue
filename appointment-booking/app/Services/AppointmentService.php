@@ -28,8 +28,15 @@ class AppointmentService
 
             $userId = auth('sanctum')->id();
 
-            // convert the timezone to UTC and save to db
-            $dateTimeUTC = Carbon::parse($data['date_time'])->utc();
+            $localTimezone = $data['timezone'] ?? config('app.timezone');
+
+            $dateTimeUTC = Carbon::createFromFormat('Y-m-d H:i:s', $data['date_time'], $localTimezone)
+                ->setTimezone('UTC');
+
+            \Log::info('Original Date:', ['input' => $data['date_time']]);
+            \Log::info('User Timezone:', ['timezone' => $localTimezone]);
+            \Log::info('Converted to UTC:', ['utc' => $dateTimeUTC->toDateTimeString()]);
+
 
             // check for duplicate booking on the same date & time 
 
@@ -47,7 +54,7 @@ class AppointmentService
 
             // check reminder time if provided then override the 30 minuts before
 
-            $reminderTimeUTC = isset($data['reminder_time']) ? Carbon::parse($data['reminder_time'])->utc() : $dateTimeUTC->copy()->subMinutes(30);
+            $reminderTimeUTC = isset($data['reminder_time']) ? Carbon::parse($data['reminder_time'], $localTimezone)->timezone('UTC') : $dateTimeUTC->copy()->subMinutes(30);
 
             // create 
             $appointmentData = [
@@ -79,6 +86,8 @@ class AppointmentService
             return ['error' => true, 'message' => $e->getMessage()];
         }
     }
+
+
 
 
     // send appointment booked notification
@@ -158,7 +167,7 @@ class AppointmentService
     // send delete appointment notification
     public function sendDeleteAppointmentNotification($appointment)
     {
-         SendCancelAppintmentBookingEmail::dispatch(auth('sanctum')->user()->email, $appointment);
+        SendCancelAppintmentBookingEmail::dispatch(auth('sanctum')->user()->email, $appointment);
 
         // // send email to guests also
         if (!empty($appointment->guests)) {
@@ -195,5 +204,7 @@ class AppointmentService
             return ['error' => true, 'message' => $e->getMessage()];
         }
     }
+
+
 
 }
