@@ -1,43 +1,45 @@
 <template>
-    <div class="space-y-6">
-        <h2 class="text-2xl font-bold text-gray-800">Create Booking</h2>
-        <p class="text-gray-600 mb-6">Schedule your event and invite guests</p>
+    <div class="container mx-auto px-4 py-6 max-w-md">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">Create Booking</h2>
+        <p class="text-sm md:text-base text-gray-600 mb-6">Schedule your event and invite guests</p>
 
         <form @submit.prevent="submitBooking" class="space-y-4">
-            <div class="my-10">
-                <label class="block text-sm font-medium text-gray-700">Title</label>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
                 <input v-model="title" type="text" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
             </div>
 
-            <div class="my-10">
-                <label class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea v-model="description"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea v-model="description" rows="3"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
             </div>
 
-            <div class="my-10">
-                <label class="block text-sm font-medium text-gray-700">Event Date & Time</label>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Event Date & Time</label>
                 <input v-model="date_time" type="datetime-local" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
             </div>
 
-            <div class="my-10">
-                <label class="block text-sm font-medium text-gray-700">Reminder Date & Time</label>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Reminder Date & Time</label>
                 <input v-model="reminder_time" type="datetime-local"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
             </div>
 
-            <div class="my-10">
-                <label class="block text-sm font-medium text-gray-700">Guest Emails (comma-separated)</label>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Guest Emails (comma-separated)</label>
                 <input v-model="guests" type="text" placeholder="john@example.com, jane@example.com"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
             </div>
 
-            <button type="submit"
-                class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                Create Booking
-            </button>
+            <div>
+                <button type="submit"
+                    class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-300">
+                    Create Booking
+                </button>
+            </div>
         </form>
     </div>
 </template>
@@ -98,11 +100,14 @@ const submitBooking = async () => {
     } catch (error) {
 
         // validation errors
-        if (error.errors) {
-            const validationErrors = error.errors;
+        if (error?.errors) {
+            const validationErrors = error?.errors;
 
-            if (validationErrors.email) toast.error(validationErrors.email[0]);
-            if (validationErrors.password) toast.error(validationErrors.password[0]);
+            if (validationErrors.title) toast.error(validationErrors?.title[0]);
+            if (validationErrors.description) toast.error(validationErrors?.description[0]);
+            if (validationErrors.date_time) toast.error(validationErrors?.date_time[0]);
+            if (validationErrors.reminder_time) toast.error(validationErrors?.reminder_time[0]);
+            if (validationErrors.guests) toast.error(validationErrors?.guests[0]);
             return;
         }
 
