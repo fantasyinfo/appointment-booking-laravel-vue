@@ -56,6 +56,11 @@ const authStore = useAuthStore();
 const toast = useToast();
 const router = useRouter();
 
+// redirect to dashboad
+if(authStore.user) {
+    router.push('/dashboard')
+}
+
 const login = async () => {
     try {
         if (!email.value || !password.value) {

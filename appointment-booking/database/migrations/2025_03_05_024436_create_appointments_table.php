@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->dateTime('date_time');
-            $table->string('timezone');
             $table->dateTime('reminder_time')->nullable();
             $table->softDeletes();
             $table->timestamps();
