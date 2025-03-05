@@ -29,4 +29,6 @@ Route::middleware('api.auth')->group(function () {
     Route::post('/appointment-booking', [AppointmentBookingController::class, 'newAppointmentBooking'])->name('appointment.booking');
 
     Route::get('/appointment-booking', [AppointmentBookingController::class, 'getAllAppointmentBookings'])->name('appointment.all.booking');
+
+    Route::delete('/appointment-booking/{id}', [AppointmentBookingController::class, 'deleteAppointment'])->name('appointment.delete');
 });

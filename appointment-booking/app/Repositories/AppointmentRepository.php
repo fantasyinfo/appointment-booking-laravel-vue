@@ -65,4 +65,14 @@ class AppointmentRepository
         return $data;
     }
 
+    public function delete($userId, $id)
+    {
+        return Appointment::where('id', $id)->where('user_id', $userId)->delete();
+    }
+
+    public function findAppointmentById($id)
+    {
+        return Appointment::find($id);
+    }
+
 }

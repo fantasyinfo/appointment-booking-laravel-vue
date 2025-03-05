@@ -3,12 +3,11 @@
 namespace App\Services;
 
 use App\Jobs\SendAppintmentBookingEmail;
-use App\Mail\AppointmentBook;
+use App\Jobs\SendCancelAppintmentBookingEmail;
 use App\Repositories\AppointmentRepository;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
+
 
 class AppointmentService
 {
@@ -82,6 +81,7 @@ class AppointmentService
     }
 
 
+    // send appointment booked notification
     public function sendAppointmentNotification($appointment)
     {
         SendAppintmentBookingEmail::dispatch(auth('sanctum')->user()->email, $appointment);
@@ -94,12 +94,13 @@ class AppointmentService
         }
     }
 
+    // get all bookings
     public function getAllBookings($request)
     {
         try {
-          
-            
-            $bookingsLists = $this->appointmentRepo->getAll(auth('sanctum')->user()->id,$request);
+
+
+            $bookingsLists = $this->appointmentRepo->getAll(auth('sanctum')->user()->id, $request);
 
             return [
                 'error' => false,
@@ -115,5 +116,84 @@ class AppointmentService
 
     }
 
+
+    // delete booking
+    public function deleteBooking($appointment)
+    {
+        try {
+
+            // check the appointment date_time 
+
+            $currentDatetime = Carbon::now()->utc();
+            $appointmentTime = Carbon::parse($appointment->date_time)->utc();
+
+            // check if current time is more then 30 minutes then delete, else return message, appointment do not delete if its in next 30 minutes
+
+            if ($currentDatetime->diffInMinutes($appointmentTime, false) <= 30) {
+                return [
+                    'error' => true,
+                    'message' => 'Appointment cannot be deleted within 30 minutes of its start time.',
+                ];
+            }
+
+
+            if ($this->appointmentRepo->delete(auth('sanctum')->user()->id, $appointment->id)) {
+                // send delete notifictions 
+                $this->sendDeleteAppointmentNotification($appointment);
+            }
+
+            return [
+                'error' => false,
+                'message' => 'Booking Deleted',
+            ];
+        } catch (Exception $e) {
+            \Log::error('something went wrong', [$e->getMessage()]);
+            return ['error' => true, 'message' => $e->getMessage()];
+        }
+
+
+
+    }
+
+    // send delete appointment notification
+    public function sendDeleteAppointmentNotification($appointment)
+    {
+         SendCancelAppintmentBookingEmail::dispatch(auth('sanctum')->user()->email, $appointment);
+
+        // // send email to guests also
+        if (!empty($appointment->guests)) {
+            foreach ($appointment->guests as $guestEmail) {
+                SendCancelAppintmentBookingEmail::dispatch($guestEmail, $appointment);
+            }
+        }
+    }
+
+    // get apointment by id
+    public function getAppointmentById($id)
+    {
+        try {
+
+            $appointment = $this->appointmentRepo->findAppointmentById($id);
+
+
+
+            if (!$appointment) {
+                return [
+                    "error" => true,
+                    "message" => "Appointment not found."
+                ];
+            }
+
+            return [
+                'error' => false,
+                'message' => 'Appointment Details',
+                'appointment' => $appointment
+            ];
+
+        } catch (Exception $e) {
+            \Log::error('something went wrong', [$e->getMessage()]);
+            return ['error' => true, 'message' => $e->getMessage()];
+        }
+    }
 
 }

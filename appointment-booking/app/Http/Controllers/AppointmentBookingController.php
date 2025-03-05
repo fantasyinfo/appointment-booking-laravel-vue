@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AppointmentRequest;
+use App\Models\Appointment;
 use App\Services\AppointmentService;
 use Illuminate\Http\Request;
 
@@ -36,7 +37,8 @@ class AppointmentBookingController extends Controller
         ], 201);
     }
 
-    public function getAllAppointmentBookings(Request $request){
+    public function getAllAppointmentBookings(Request $request)
+    {
         $response = $this->appointmentService->getAllBookings($request);
 
 
@@ -52,5 +54,35 @@ class AppointmentBookingController extends Controller
             "data" => $response
 
         ], 201);
+    }
+
+    public function deleteAppointment($id)
+    {
+
+        // check valid id
+        $isFound = $this->appointmentService->getAppointmentById($id);
+
+        if (!empty($isFound['error'])) {
+            return response()->json([
+                "error" => true,
+                "message" => $isFound['message'],
+            ], 400);
+        }
+
+        // delete now
+        $response = $this->appointmentService->deleteBooking($isFound['appointment']);
+
+        if (!empty($response['error'])) {
+            return response()->json([
+                "error" => true,
+                "message" => $response['message'],
+            ], 400);
+        }
+        return response()->json([
+            "error" => false,
+            "message" => "Appointment Deleted Successfully.",
+            "data" => $response
+
+        ], 200);
     }
 }
