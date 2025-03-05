@@ -1,14 +1,9 @@
 <template>
-    <h1 class='bg-red-400'>Hello from {{ _name }}</h1>
+   <div class="min-h-screen bg-gray-100">
+        <router-view />
+    </div>
 </template>
 
-<script>
-export default {
-    data() {
-        return {
-            _name: 'Appointment booking'
-        }
-    }
+<script setup>
 
-}
 </script>
