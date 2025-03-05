@@ -27,4 +27,6 @@ Route::middleware('api.auth')->group(function () {
 
     // appointment routes
     Route::post('/appointment-booking', [AppointmentBookingController::class, 'newAppointmentBooking'])->name('appointment.booking');
+
+    Route::get('/appointment-booking', [AppointmentBookingController::class, 'getAllAppointmentBookings'])->name('appointment.all.booking');
 });

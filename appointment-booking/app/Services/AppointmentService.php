@@ -94,5 +94,26 @@ class AppointmentService
         }
     }
 
+    public function getAllBookings($request)
+    {
+        try {
+          
+            
+            $bookingsLists = $this->appointmentRepo->getAll(auth('sanctum')->user()->id,$request);
+
+            return [
+                'error' => false,
+                'message' => 'Booking successful',
+                'appointments' => $bookingsLists
+            ];
+        } catch (Exception $e) {
+            \Log::error('something went wrong', [$e->getMessage()]);
+            return ['error' => true, 'message' => $e->getMessage()];
+        }
+
+
+
+    }
+
 
 }

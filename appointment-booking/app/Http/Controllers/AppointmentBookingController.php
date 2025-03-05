@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AppointmentRequest;
 use App\Services\AppointmentService;
-
+use Illuminate\Http\Request;
 
 class AppointmentBookingController extends Controller
 {
@@ -25,12 +25,30 @@ class AppointmentBookingController extends Controller
         if (!empty($response['error'])) {
             return response()->json([
                 "error" => true,
-                "message" => $response['message']
+                "message" => $response['message'],
             ], 400);
         }
         return response()->json([
             "error" => false,
             "message" => "New Appointment Book Successfully.",
+            "data" => $response
+
+        ], 201);
+    }
+
+    public function getAllAppointmentBookings(Request $request){
+        $response = $this->appointmentService->getAllBookings($request);
+
+
+        if (!empty($response['error'])) {
+            return response()->json([
+                "error" => true,
+                "message" => $response['message']
+            ], 400);
+        }
+        return response()->json([
+            "error" => false,
+            "message" => "All Appointment Bookings Lists.",
             "data" => $response
 
         ], 201);
