@@ -35,35 +35,34 @@ class AppointmentRepository
     // get all bookings of a user
     public function getAll($userId, $request)
     {
-
-        // \DB::connection()->enableQueryLog();
-
         $query = Appointment::query();
-
         $query->where('user_id', $userId)->with('guests');
-
-        // created Date filter
+    
+        // Extract sorting filters from the request
+        $sortFilters = [];
+    
         if ($request->has('createdDate') && in_array(strtolower($request->createdDate), ['asc', 'desc'])) {
-            $query->orderBy('created_at', $request->createdDate);
+            $sortFilters['createdDate'] = $request->createdDate;
         }
-
-        // upcoming date filter
-
+    
         if ($request->has('upcoming') && in_array(strtolower($request->upcoming), ['asc', 'desc'])) {
-            $query->orderBy('date_time', $request->upcoming);
+            $sortFilters['upcoming'] = $request->upcoming;
         }
-
-        // default
-        if (!$request->has('createdDate') && !$request->has('upcoming')) {
+    
+        // Apply sorting dynamically
+        if (!empty($sortFilters)) {
+            foreach ($sortFilters as $column => $direction) {
+                $sortColumn = $column === 'upcoming' ? 'date_time' : 'created_at';
+                $query->orderBy($sortColumn, $direction);
+            }
+        } else {
+            // Default sorting by date_time if no filters are provided
             $query->orderBy('date_time', 'asc');
         }
-
-        $data = $query->get();
-
-
-        // \Log::info('Query ', \DB::getQueryLog());
-        return $data;
+    
+        return $query->get();
     }
+    
 
     public function delete($userId, $id)
     {

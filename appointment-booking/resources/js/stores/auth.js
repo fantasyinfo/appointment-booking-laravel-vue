@@ -41,16 +41,6 @@ export const useAuthStore = defineStore("auth", {
             }
         },
 
-        // logout
-        async logout() {
-            try {
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                this.user = null;
-                this.token = null;
-            } catch (error) {
-                throw error?.response?.data;
-            }
-        },
+       
     },
 });

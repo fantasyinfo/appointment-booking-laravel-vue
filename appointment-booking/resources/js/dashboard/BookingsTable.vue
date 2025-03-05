@@ -7,6 +7,7 @@
                 <button @click="sortByDate" class="px-4 py-2 bg-blue-500 text-white rounded">Sort by Date</button>
                 <button @click="sortByUpcoming" class="px-4 py-2 bg-green-500 text-white rounded ml-2">Sort by
                     Upcoming</button>
+                <button @click="logout" class="px-4 py-2 bg-red-500 text-white rounded ml-2">Logout</button>
             </div>
         </div>
 
@@ -60,13 +61,15 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { getAllBookings } from '../utils/Booking.Api.js'
+import { onMounted, ref, defineExpose } from 'vue'
+import { getAllBookings, deleteExistingBooking , logoutUser} from '../utils/Booking.Api.js'
 import { useToast } from "vue-toastification"
+import {useRouter} from 'vue-router'
 const sortOptions = ref({ createdDate: "asc", upcoming: "asc" });
 
 const toast = useToast();
 const bookingsLists = ref([]);
+const router = useRouter();
 
 
 const fetchBookings = async (sortParams = {}) => {
@@ -100,7 +103,74 @@ const fetchBookings = async (sortParams = {}) => {
 }
 
 const deleteBooking = async (id) => {
-    console.log(id)
+
+    const isConfirmed = window.confirm("Are you sure you want to delete this booking?");
+    if (!isConfirmed) return;
+
+    try {
+
+        const deleteBooking = await deleteExistingBooking(id);
+
+        if (deleteBooking?.data?.error) {
+            return toast.error(deleteBooking?.data?.message)
+        }
+
+        console.log(deleteBooking?.data?.appointments)
+        toast.success("Booking Deleted Succcessful.");
+
+        // fetch data after delete
+        fetchBookings(sortOptions)
+
+    } catch (error) {
+
+        if (error?.error) {
+            toast.error(error?.message)
+            return;
+        }
+        toast.error(error?.response?.data?.message || "Something went wrong.");
+
+        if (!error?.response) {
+            toast.error("Network error. Server not responding.");
+            return;
+        }
+
+
+    }
+}
+
+// logout
+const logout = async () => {
+
+
+    try {
+
+        const logout = await logoutUser();
+
+        if (logout?.data?.error) {
+            return toast.error(logout?.data?.message)
+        }
+
+        console.log(logout?.data?.appointments)
+        toast.success("Logout Succcessful.");
+
+        // redirect to login
+        router.push('/login');
+
+    } catch (error) {
+
+        if (error?.error) {
+            toast.error(error?.message)
+            return;
+        }
+        toast.error(error?.response?.data?.message || "Something went wrong.");
+
+        if (!error?.response) {
+            toast.error("Network error. Server not responding.");
+            return;
+        }
+
+
+    }
 }
 
 const sortByDate = () => {
@@ -112,6 +182,8 @@ const sortByUpcoming = () => {
     sortOptions.upcoming = sortOptions.upcoming == 'desc' ? 'asc' : 'desc'
     fetchBookings(sortOptions)
 }
+
+defineExpose({ fetchBookings });
 
 onMounted(() => fetchBookings(sortOptions));
 </script>

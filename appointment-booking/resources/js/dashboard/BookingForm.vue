@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref,defineEmits } from 'vue'
 import { newBooking } from '../utils/Booking.Api.js'
 import { useToast } from "vue-toastification"
 
@@ -59,7 +59,7 @@ const guests = ref('')
 
 const toast = useToast();
 
-
+const emit = defineEmits(['bookingCreated'])
 
 const submitBooking = async () => {
     try {
@@ -90,6 +90,9 @@ const submitBooking = async () => {
             return toast.error(bookingResponse?.data?.message)
         }
         toast.success("Booking successful, and email has been send with booking details.");
+
+        // emit 
+        emit('bookingCreated');
 
         // empty the form now
         title.value = '';
