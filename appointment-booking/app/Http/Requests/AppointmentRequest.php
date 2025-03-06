@@ -27,8 +27,8 @@ class AppointmentRequest extends FormRequest
             //
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'date_time' => 'required|date|after:now',
-            'reminder_time' => 'nullable|date|before_or_equal:date_time',
+            'date_time' => 'required|integer',
+            'reminder_time' => 'nullable|integer',
             'guests' => 'array|nullable',
             'guests.*' => 'email'
         ];

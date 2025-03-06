@@ -35,6 +35,16 @@
                 </div>
 
                 <div>
+                    <label for="timezone" class="block text-sm font-medium text-gray-900">Timezone</label>
+                    <select v-model="timezone" id="timezone" required
+                        class="mt-2 block w-full rounded-md border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option v-for="tz in timezones" :key="tz" :value="tz">
+                            {{ tz }}
+                        </option>
+                    </select>
+                </div>
+
+                <div>
                     <button type="submit"
                         class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Sign
                         in</button>
@@ -51,19 +61,22 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth.js'
 import { useToast } from "vue-toastification"
+import moment from 'moment-timezone'
 
 const name = ref('');
 const email = ref('');
 const password = ref('');
+const timezone = ref('');
+const timezones = ref([]);
 const authStore = useAuthStore();
 const toast = useToast();
 
 const register = async () => {
     try {
-        if (!name.value || !email.value || !password.value) {
+        if (!name.value || !email.value || !password.value || !timezone.value) {
             return toast.error("All fields are required");
         }
 
@@ -71,6 +84,7 @@ const register = async () => {
             name: name.value,
             email: email.value,
             password: password.value,
+            timezone: timezone.value
         });
 
         if (registerResponse?.data?.error) {
@@ -96,6 +110,20 @@ const register = async () => {
         toast.error(error.response.data.message || "Something went wrong.");
     }
 };
+
+
+onMounted(() => {
+    // Load timezone list
+    timezones.value = moment.tz.names();
+
+    // Get user's timezone
+    let userTimezone = moment.tz.guess();
+
+    // Ensure 'Asia/Kolkata' is used instead of 'Asia/Calcutta'
+    timezone.value = userTimezone === "Asia/Calcutta" ? "Asia/Kolkata" : userTimezone;
+   //timezone.value = userTimezone
+});
+
 
 
 </script>

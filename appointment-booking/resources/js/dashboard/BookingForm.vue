@@ -50,13 +50,6 @@ import { newBooking } from '../utils/Booking.Api.js'
 import { useToast } from "vue-toastification"
 
 
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
 
 const title = ref('')
 const description = ref('')
@@ -86,24 +79,14 @@ const submitBooking = async () => {
             return toast.error("One or more guest emails are invalid.");
         }
 
-        const localTimezone = dayjs.tz.guess();
-        const formattedDateTime = dayjs(date_time.value)
-            .tz(localTimezone)
-            .format("YYYY-MM-DD HH:mm:ss");
 
-        let formattedReminderDateTime;
-        if (reminder_time.value) {
-            formattedReminderDateTime = dayjs(reminder_time.value)
-                .tz(localTimezone)
-                .format("YYYY-MM-DD HH:mm:ss");
-        }
 
 
         const bookingResponse = await newBooking({
             title: title.value,
             description: description.value,
-            date_time: formattedDateTime,
-            reminder_time: formattedReminderDateTime || null,
+            date_time: new Date(date_time.value).getTime(),
+            reminder_time: reminder_time.value ? new Date(reminder_time.value).getTime() : null,
             guests: guestList,
         });
 

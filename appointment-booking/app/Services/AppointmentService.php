@@ -22,41 +22,101 @@ class AppointmentService
 
 
     // book appointment
+    // public function appointmentBooking($data)
+    // {
+    //     try {
+
+    //         $userId = auth('sanctum')->id();
+
+    //         $localTimezone = $data['timezone'] ?? config('app.timezone');
+
+    //         $dateTimeUTC = Carbon::createFromFormat('Y-m-d H:i:s', $data['date_time'], $localTimezone)
+    //             ->setTimezone('UTC');
+
+    //         \Log::info('Original Date:', ['input' => $data['date_time']]);
+    //         \Log::info('User Timezone:', ['timezone' => $localTimezone]);
+    //         \Log::info('Converted to UTC:', ['utc' => $dateTimeUTC->toDateTimeString()]);
+
+
+    //         // check for duplicate booking on the same date & time 
+
+    //         if ($this->appointmentRepo->existsForUser($userId, $dateTimeUTC)) {
+    //             return ['error' => true, 'message' => 'Booking already found, Duplicate entry.'];
+    //         }
+
+
+
+    //         // weekday validation 
+
+    //         if (!$dateTimeUTC->isWeekday()) {
+    //             return ['error' => true, 'message' => 'Appointment can only be on weekdays Monday to friday.'];
+    //         }
+
+    //         // check reminder time if provided then override the 30 minuts before
+
+    //         $reminderTimeUTC = isset($data['reminder_time']) ? Carbon::parse($data['reminder_time'], $localTimezone)->timezone('UTC') : $dateTimeUTC->copy()->subMinutes(30);
+
+    //         // create 
+    //         $appointmentData = [
+    //             'user_id' => $userId,
+    //             'title' => $data['title'],
+    //             'description' => $data['description'],
+    //             'date_time' => $dateTimeUTC,
+    //             'reminder_time' => $reminderTimeUTC,
+    //         ];
+    //         $appointment = $this->appointmentRepo->create($appointmentData);
+
+    //         // create guests
+    //         if (!empty($data['guests'])) {
+
+    //             $this->appointmentRepo->createGuests($appointment, $data['guests']);
+    //         }
+
+    //         // send email notification of new booking to user and all guests if provided
+    //         $this->sendAppointmentNotification($appointment);
+
+    //         return [
+    //             'error' => false,
+    //             'message' => 'Booking successful',
+    //             'appointment' => $appointment
+    //         ];
+
+    //     } catch (Exception $e) {
+    //         \Log::error('something went wrong', [$e->getMessage()]);
+    //         return ['error' => true, 'message' => $e->getMessage()];
+    //     }
+    // }
     public function appointmentBooking($data)
     {
         try {
-
             $userId = auth('sanctum')->id();
 
-            $localTimezone = $data['timezone'] ?? config('app.timezone');
 
-            $dateTimeUTC = Carbon::createFromFormat('Y-m-d H:i:s', $data['date_time'], $localTimezone)
-                ->setTimezone('UTC');
 
-            \Log::info('Original Date:', ['input' => $data['date_time']]);
-            \Log::info('User Timezone:', ['timezone' => $localTimezone]);
+            // Convert milliseconds to Carbon UTC
+            $dateTimeUTC = Carbon::createFromTimestampMs($data['date_time'])->timezone('UTC');
+
+            \Log::info('Original Timestamp:', ['input' => $data['date_time']]);
             \Log::info('Converted to UTC:', ['utc' => $dateTimeUTC->toDateTimeString()]);
 
-
-            // check for duplicate booking on the same date & time 
-
+            // Check for duplicate booking on the same date & time 
             if ($this->appointmentRepo->existsForUser($userId, $dateTimeUTC)) {
                 return ['error' => true, 'message' => 'Booking already found, Duplicate entry.'];
             }
 
-
-
-            // weekday validation 
-
+            // Weekday validation 
             if (!$dateTimeUTC->isWeekday()) {
-                return ['error' => true, 'message' => 'Appointment can only be on weekdays Monday to friday.'];
+                return ['error' => true, 'message' => 'Appointment can only be on weekdays Monday to Friday.'];
             }
 
-            // check reminder time if provided then override the 30 minuts before
+            // Handle reminder time (convert milliseconds if provided)
+            $reminderTimeUTC = isset($data['reminder_time'])
+                ? Carbon::createFromTimestampMs($data['reminder_time'])->timezone('UTC')
+                : $dateTimeUTC->copy()->subMinutes(30);
 
-            $reminderTimeUTC = isset($data['reminder_time']) ? Carbon::parse($data['reminder_time'], $localTimezone)->timezone('UTC') : $dateTimeUTC->copy()->subMinutes(30);
+            \Log::info('Reminder Time UTC:', ['reminder_utc' => $reminderTimeUTC->toDateTimeString()]);
 
-            // create 
+            // Create appointment data
             $appointmentData = [
                 'user_id' => $userId,
                 'title' => $data['title'],
@@ -64,15 +124,15 @@ class AppointmentService
                 'date_time' => $dateTimeUTC,
                 'reminder_time' => $reminderTimeUTC,
             ];
+
             $appointment = $this->appointmentRepo->create($appointmentData);
 
-            // create guests
+            // Create guests if provided
             if (!empty($data['guests'])) {
-
                 $this->appointmentRepo->createGuests($appointment, $data['guests']);
             }
 
-            // send email notification of new booking to user and all guests if provided
+            // Send email notification
             $this->sendAppointmentNotification($appointment);
 
             return [
@@ -82,7 +142,7 @@ class AppointmentService
             ];
 
         } catch (Exception $e) {
-            \Log::error('something went wrong', [$e->getMessage()]);
+            \Log::error('Something went wrong', [$e->getMessage()]);
             return ['error' => true, 'message' => $e->getMessage()];
         }
     }

@@ -33,10 +33,11 @@ class CheckReminders extends Command
 
         Log::info("Current UTC Time ", [$nowUtc]);
 
-        $appointments = Appointment::where('reminder_time', $nowUtc)
-            ->where('reminder_sent', false)
-            ->with(['user', 'guests']) // Fetch related user and guests
-            ->get();
+        $appointments = Appointment::where('reminder_time', '<=', now('UTC'))
+        ->where('reminder_sent', false)
+        ->with(['user', 'guests']) 
+        ->get();
+    
 
         Log::info("Appointments Found: ", [$appointments ]);
         foreach ($appointments as $appointment) {
